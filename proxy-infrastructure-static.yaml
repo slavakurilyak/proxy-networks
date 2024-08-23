@@ -1,0 +1,167 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Proxy network infrastructure with 500+ static IPs'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for the proxy network
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet::Id
+    Description: Public Subnet 1 ID
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet::Id
+    Description: Public Subnet 2 ID
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    Description: EC2 instance type for proxy servers
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: EC2 Key Pair for SSH access
+  ElasticIPs:
+    Type: CommaDelimitedList
+    Description: Comma-separated list of Elastic IP Allocation IDs
+  NumberOfProxies:
+    Type: Number
+    Default: 500
+    Description: Number of proxy servers (and Elastic IPs) to create
+
+Resources:
+  ProxySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for proxy servers
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3128
+          ToPort: 3128
+          CidrIp: 0.0.0.0/0
+
+  ProxyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: ami-xxxxxxxx  # Replace with your custom AMI ID
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        SecurityGroupIds:
+          - !Ref ProxySecurityGroup
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y squid
+            systemctl enable squid
+            systemctl start squid
+
+  ProxyAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      LaunchTemplate:
+        LaunchTemplateId: !Ref ProxyLaunchTemplate
+        Version: !GetAtt ProxyLaunchTemplate.LatestVersionNumber
+      MinSize: !Ref NumberOfProxies
+      MaxSize: !Ref NumberOfProxies
+      DesiredCapacity: !Ref NumberOfProxies
+      HealthCheckType: EC2
+      HealthCheckGracePeriod: 300
+
+  AssociateElasticIPs:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          
+          def handler(event, context):
+            if event['RequestType'] == 'Create' or event['RequestType'] == 'Update':
+              ec2 = boto3.client('ec2')
+              asg = boto3.client('autoscaling')
+              
+              asg_name = event['ResourceProperties']['AutoScalingGroupName']
+              eip_ids = event['ResourceProperties']['ElasticIPs']
+              
+              response = asg.describe_auto_scaling_groups(AutoScalingGroupNames=[asg_name])
+              instance_ids = [i['InstanceId'] for i in response['AutoScalingGroups'][0]['Instances']]
+              
+              for i, instance_id in enumerate(instance_ids):
+                if i < len(eip_ids):
+                  ec2.associate_address(InstanceId=instance_id, AllocationId=eip_ids[i])
+            
+            cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+      Runtime: python3.8
+      Timeout: 300
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: AssociateElasticIPs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:AssociateAddress
+                  - ec2:DescribeInstances
+                  - autoscaling:DescribeAutoScalingGroups
+                Resource: '*'
+
+  AssociateElasticIPsCustomResource:
+    Type: Custom::AssociateElasticIPs
+    Properties:
+      ServiceToken: !GetAtt AssociateElasticIPs.Arn
+      AutoScalingGroupName: !Ref ProxyAutoScalingGroup
+      ElasticIPs: !Ref ElasticIPs
+
+  ProxyLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: network
+      Scheme: internet-facing
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+
+  ProxyTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 3128
+      Protocol: TCP
+      VpcId: !Ref VpcId
+      TargetType: instance
+
+  ProxyListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ProxyTargetGroup
+      LoadBalancerArn: !Ref ProxyLoadBalancer
+      Port: 3128
+      Protocol: TCP
+
+Outputs:
+  ProxyLoadBalancerDNS:
+    Description: DNS name of the proxy load balancer
+    Value: !GetAtt ProxyLoadBalancer.DNSName

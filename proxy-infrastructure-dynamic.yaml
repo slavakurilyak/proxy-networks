@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Proxy network infrastructure with 500+ dynamic IPs'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for the proxy network
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet::Id
+    Description: Public Subnet 1 ID
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet::Id
+    Description: Public Subnet 2 ID
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    Description: EC2 instance type for proxy servers
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: EC2 Key Pair for SSH access
+
+Resources:
+  ProxySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for proxy servers
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3128
+          ToPort: 3128
+          CidrIp: 0.0.0.0/0
+
+  ProxyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: ami-xxxxxxxx  # Replace with your custom AMI ID
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        SecurityGroupIds:
+          - !Ref ProxySecurityGroup
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y squid
+            systemctl enable squid
+            systemctl start squid
+
+  ProxyAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      LaunchTemplate:
+        LaunchTemplateId: !Ref ProxyLaunchTemplate
+        Version: !GetAtt ProxyLaunchTemplate.LatestVersionNumber
+      MinSize: 500
+      MaxSize: 1000
+      DesiredCapacity: 500
+      HealthCheckType: EC2
+      HealthCheckGracePeriod: 300
+
+  ProxyLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: network
+      Scheme: internet-facing
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+
+  ProxyTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 3128
+      Protocol: TCP
+      VpcId: !Ref VpcId
+      TargetType: instance
+
+  ProxyListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ProxyTargetGroup
+      LoadBalancerArn: !Ref ProxyLoadBalancer
+      Port: 3128
+      Protocol: TCP
+
+Outputs:
+  ProxyLoadBalancerDNS:
+    Description: DNS name of the proxy load balancer
+    Value: !GetAtt ProxyLoadBalancer.DNSName
