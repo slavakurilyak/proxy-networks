@@ -8,10 +8,10 @@ This proxy network can be useful for various applications, such as web scraping,
 
 The project uses AWS CloudFormation templates to define and deploy the infrastructure:
 
-- `vpc-template-dynamic.yaml`: VPC template for dynamic IP setup
-- `vpc-template-static.yaml`: VPC template for static IP setup
-- `proxy-infrastructure-dynamic.yaml`: Proxy infrastructure template for dynamic IP setup
-- `proxy-infrastructure-static.yaml`: Proxy infrastructure template for static IP setup
+- [`vpc-template-dynamic.yaml`](vpc-template-dynamic.yaml): VPC template for dynamic IP setup
+- [`vpc-template-static.yaml`](vpc-template-static.yaml): VPC template for static IP setup
+- [`proxy-infrastructure-dynamic.yaml`](proxy-infrastructure-dynamic.yaml): Proxy infrastructure template for dynamic IP setup
+- [`proxy-infrastructure-static.yaml`](proxy-infrastructure-static.yaml): Proxy infrastructure template for static IP setup
 
 The dynamic IP setup uses auto-assigned public IP addresses, which may change if instances are stopped and started. The static IP setup uses Elastic IPs, providing consistent IP addresses for each proxy instance. Choose the setup that best fits your use case and requirements.
 
