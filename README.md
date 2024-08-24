@@ -1,5 +1,7 @@
 # Proxy Networks
 
+## Unleash 500+ IPs with One-Click AWS Deployment
+
 This project aims to create a proxy network of 500+ AWS EC2 instances running Squid proxy servers, using both dynamic and static IP configurations.
 
 This proxy network can be useful for various applications, such as web scraping, load testing, or anonymizing traffic. The project provides two setup options: dynamic IP and static IP, allowing users to choose the configuration that best suits their needs. Additionally, this infrastructure can be adapted for email server deployments, where multiple IP addresses may be beneficial for: 
