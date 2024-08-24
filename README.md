@@ -288,6 +288,8 @@ Disclaimer: These are rough estimates and actual costs may vary based on usage, 
 - [`aws-cloudformation-templates/`](aws-cloudformation-templates/): Contains AWS CloudFormation templates
   - [`vpc-template-dynamic.yaml`](aws-cloudformation-templates/vpc-template-dynamic.yaml): VPC template for dynamic IP setup
   - [`vpc-template-static.yaml`](aws-cloudformation-templates/vpc-template-static.yaml): VPC template for static IP setup
+  - [`proxy-infrastructure-dynamic.yaml`](aws-cloudformation-templates/proxy-infrastructure-dynamic.yaml): Proxy infrastructure template for dynamic IP setup
+  - [`proxy-infrastructure-static.yaml`](aws-cloudformation-templates/proxy-infrastructure-static.yaml): Proxy infrastructure template for static IP setup
 - [`requirements.txt`](requirements.txt): Lists the Python package dependencies
 - [`.gitignore`](.gitignore): Specifies intentionally untracked files to ignore
 
@@ -295,4 +297,4 @@ Disclaimer: These are rough estimates and actual costs may vary based on usage, 
 
 Built AI agents for clients as founder of [TeamX](https://teamx.work). Created [Produvia](https://produvia.com) as an AI agency. Developed proxy networks for scalable web operations and wrote infrastructure-as-code for cloud deployments (this project). Won hackathons as a full-stack developer. 
 
-Interested to hire Slava for your next project? [Contact him here](https://cal.com/slavakurilyak/discovery-call).
+Interested to hire Slava for your next project? [Schedule a discovery call here](https://cal.com/slavakurilyak/discovery-call).
