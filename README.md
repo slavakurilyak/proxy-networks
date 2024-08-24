@@ -16,7 +16,7 @@ This project primarily uses [Pulumi](https://www.pulumi.com/) to define, deploy,
 
 ### Pulumi Infrastructure Code
 
-Located in the `src` directory:
+Located in the [`src`](src/) directory:
 
 - [`dynamic_infrastructure.py`](src/dynamic_infrastructure.py): Pulumi code for dynamic IP setup
 - [`static_infrastructure.py`](src/static_infrastructure.py): Pulumi code for static IP setup
@@ -64,7 +64,7 @@ Note: Ensure you have configured your AWS credentials properly before running th
 
 ### AWS CloudFormation Templates (Alternative)
 
-Located in the `aws-cloudformation-templates` directory:
+Located in the [`aws-cloudformation-templates`](aws-cloudformation-templates/) directory:
 
 - [`vpc-template-dynamic.yaml`](aws-cloudformation-templates/vpc-template-dynamic.yaml): VPC template for dynamic IP setup
 - [`vpc-template-static.yaml`](aws-cloudformation-templates/vpc-template-static.yaml): VPC template for static IP setup
@@ -279,12 +279,20 @@ Disclaimer: These are rough estimates and actual costs may vary based on usage, 
 
 ## Project Structure
 
-- `src/`: Contains the Pulumi infrastructure code
-  - `dynamic_infrastructure.py`: Defines the dynamic IP setup
-  - `static_infrastructure.py`: Defines the static IP setup
-- `tests/`: Contains unit tests for the infrastructure code
-  - `test_dynamic_infrastructure.py`: Tests for dynamic IP setup
-  - `test_static_infrastructure.py`: Tests for static IP setup
-- `aws-cloudformation-templates/`: Contains AWS CloudFormation templates
-- `requirements.txt`: Lists the Python package dependencies
-- `.gitignore`: Specifies intentionally untracked files to ignore
+- [`src/`](src/): Contains the Pulumi infrastructure code
+  - [`dynamic_infrastructure.py`](src/dynamic_infrastructure.py): Defines the dynamic IP setup
+  - [`static_infrastructure.py`](src/static_infrastructure.py): Defines the static IP setup
+- [`tests/`](tests/): Contains unit tests for the infrastructure code
+  - [`test_dynamic_infrastructure.py`](tests/test_dynamic_infrastructure.py): Tests for dynamic IP setup
+  - [`test_static_infrastructure.py`](tests/test_static_infrastructure.py): Tests for static IP setup
+- [`aws-cloudformation-templates/`](aws-cloudformation-templates/): Contains AWS CloudFormation templates
+  - [`vpc-template-dynamic.yaml`](aws-cloudformation-templates/vpc-template-dynamic.yaml): VPC template for dynamic IP setup
+  - [`vpc-template-static.yaml`](aws-cloudformation-templates/vpc-template-static.yaml): VPC template for static IP setup
+- [`requirements.txt`](requirements.txt): Lists the Python package dependencies
+- [`.gitignore`](.gitignore): Specifies intentionally untracked files to ignore
+
+## About Slava Kurilyak
+
+Built AI agents for clients as founder of [TeamX](https://teamx.work). Created [Produvia](https://produvia.com) as an AI agency. Developed proxy networks for scalable web operations and wrote infrastructure-as-code for cloud deployments (this project). Won hackathons as a full-stack developer. 
+
+Interested to hire Slava for your next project? [Contact him here](https://cal.com/slavakurilyak/discovery-call).
