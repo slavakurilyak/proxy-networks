@@ -290,8 +290,6 @@ Disclaimer: These are rough estimates and actual costs may vary based on usage, 
   - [`vpc-template-static.yaml`](aws-cloudformation-templates/vpc-template-static.yaml): VPC template for static IP setup
   - [`proxy-infrastructure-dynamic.yaml`](aws-cloudformation-templates/proxy-infrastructure-dynamic.yaml): Proxy infrastructure template for dynamic IP setup
   - [`proxy-infrastructure-static.yaml`](aws-cloudformation-templates/proxy-infrastructure-static.yaml): Proxy infrastructure template for static IP setup
-- [`requirements.txt`](requirements.txt): Lists the Python package dependencies
-- [`.gitignore`](.gitignore): Specifies intentionally untracked files to ignore
 
 ## About Slava Kurilyak
 
